@@ -1,0 +1,32 @@
+# Arquivos de compilação
+*.apk
+*.ap_
+*.aab
+*.aar
+*.so
+*.dex
+*.class
+
+# Pasta de build
+/build
+
+# Arquivos de logs
+*.log
+
+# Arquivos temporários
+*.temp
+*.tmp
+*.tmd
+
+# Arquivos de configuração local específicos do usuário
+/local.properties
+.idea/*
+
+# Pasta .gradle
+/.gradle
+/captures
+
+# Outros arquivos específicos do sistema operacional
+.DS_Store
+Thumbs.db
+
