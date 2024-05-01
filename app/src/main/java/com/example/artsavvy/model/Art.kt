@@ -4,5 +4,6 @@ data class Art(
     val id: String = "",
     val name: String = "",
     val author: String = "",
-    val exhibitionId: String = ""
+    val exhibitionId: String = "",
+    val imageUrl: String = ""
 )

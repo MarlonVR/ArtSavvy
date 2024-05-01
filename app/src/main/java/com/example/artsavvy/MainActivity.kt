@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
                 ArtSavvyApp.NavController()
             }
         }
-        testAddArt()
+        //testAddArt()
     }
 }
 
@@ -37,7 +37,8 @@ fun testAddArt() {
     val newArt = Art(
         name = "The Starry Night",
         author = "Vincent van Gogh",
-        exhibitionId = "exhibition1"
+        exhibitionId = "exhibition1",
+        imageUrl = "https://imgs.search.brave.com/dr6SvW3KB8OUVz0l9G0MI6LL5bo-O9ikhrvLTdRs8eQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9hcnRj/ZXRlcmEuYXJ0L3dw/LWNvbnRlbnQvdXBs/b2Fkcy8yMDIyLzAz/L3RpcG9zLWRlLWFy/dGVzLXZpc3VhaXMt/cG9sbG9jay0xLmpw/Zw"
     )
     val database = FirebaseDatabase.getInstance()
     val artManager = ArtManager(database)
