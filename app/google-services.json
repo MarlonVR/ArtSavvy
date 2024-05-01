@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "736367790033",
+    "project_id": "artsavvy-509b9",
+    "storage_bucket": "artsavvy-509b9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736367790033:android:b45511e81a43c406fdc2f0",
+        "android_client_info": {
+          "package_name": "com.example.artsavvy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWvoEeWKA29_VJve3cgT95UFCAc8Q3kTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
