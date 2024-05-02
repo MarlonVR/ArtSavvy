@@ -3,7 +3,7 @@ package com.example.artsavvy.ui.screens
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.Card
@@ -34,14 +35,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.artsavvy.R
 import com.example.artsavvy.viewmodel.ArtViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.manager.ArtManager
@@ -56,7 +58,7 @@ class Exhibition {
                 Column {
                     TopBar(backToHome = { navController.navigate("home") })
                     SearchBar()
-                    ArtList()
+                    ArtList(reloadPage = { navController.navigate("exhibition") })
                 }
             }
         }
@@ -114,11 +116,11 @@ class Exhibition {
         }
 
         @Composable
-        fun ArtList() {
+        fun ArtList(reloadPage: () -> Unit) {
             val artManager: ArtManager = AppModule.provideArtManager(AppModule.provideFirebaseDatabase())
             val artViewModel = remember { ArtViewModel(artManager) }
-
             val artPieces by artViewModel.artPieces.observeAsState(initial = emptyList())
+            val isAdmin by artViewModel.isAdmin.observeAsState(initial = false)
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -126,7 +128,10 @@ class Exhibition {
             ) {
                 LazyColumn {
                     items(artPieces, key = { art -> art.id }) { art ->
-                        ArtCard(art = art)
+                        ArtCard(art, artManager, isAdmin){
+                             artManager.removeArt(art.id)
+                             reloadPage()
+                        }
                     }
                 }
             }
@@ -134,7 +139,7 @@ class Exhibition {
 
 
         @Composable
-        fun ArtCard(art: Art) {
+        fun ArtCard(art: Art, artManager: ArtManager, isAdmin: Boolean, onDelete: () -> Unit) {
             Card(
                 modifier = Modifier
                     .width(300.dp)
@@ -143,10 +148,7 @@ class Exhibition {
                 elevation = 4.dp
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    val painter = rememberImagePainter(data = art.imageUrl) {
-                        //placeholder(R.drawable.placeholder)
-                        //error(R.drawable.error)
-                    }
+                    val painter = rememberImagePainter(data = art.imageUrl)
                     Image(
                         painter = painter,
                         contentDescription = "Obra de Arte",
@@ -166,11 +168,34 @@ class Exhibition {
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
+
+                    if (isAdmin) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            EditableTextLink(text = "Editar", onClick = { /* TODO */ })
+                            EditableTextLink(text = "Excluir", onClick = { onDelete();  })
+                        }
+                    }
                 }
             }
         }
 
-
+        @Composable
+        fun EditableTextLink(text: String, onClick: () -> Unit) {
+            val annotatedText = buildAnnotatedString {
+                pushStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.None))
+                append(text)
+                pop()
+            }
+            ClickableText(
+                text = annotatedText,
+                onClick = { onClick() },
+                modifier = Modifier.padding(4.dp)
+            )
+        }
 
 
 

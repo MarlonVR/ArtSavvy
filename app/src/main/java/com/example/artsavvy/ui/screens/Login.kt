@@ -107,7 +107,7 @@ class Login {
 
         private fun performLogin(email: String, password: String, navController: NavController, onResult: (Boolean) -> Unit) {
             if (email.isBlank() || password.isBlank()) {
-                onResult(false) // Não realizar login se e-mail ou senha estiverem vazios, pra evitar crashar o app
+                onResult(false) // Não tentar realizar login se e-mail ou senha estiverem vazios, pra evitar crashar o app
                 return
             }
             FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
