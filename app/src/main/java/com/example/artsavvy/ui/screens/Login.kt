@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -27,16 +28,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.artsavvy.R
+import com.google.firebase.auth.FirebaseAuth
 
 class Login {
     companion object {
         @Composable
         fun Screen(navController: NavController) {
-            var pin by remember { mutableStateOf("") }
-            var username by remember { mutableStateOf("") }
+            var email by remember { mutableStateOf("") }
+            var password by remember { mutableStateOf("") }
+            var loginError by remember { mutableStateOf(false) }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(
@@ -53,54 +57,69 @@ class Login {
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
                     TextField(
-                        value = pin,
-                        onValueChange = { pin = it },
-                        label = { Text("PIN de Acesso") },
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     TextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text("Nome de Usuário") },
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Senha") },
                         singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth()
                     )
-                }
-
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                ) {
-                    LoginButton(onClick = { navController.navigate("home") })
-                    Spacer(modifier = Modifier.height(32.dp))
+                    if (loginError) {
+                        Text(
+                            "Email ou senha incorretos. Tente novamente.",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LoginButton(onLogin = {
+                        performLogin(email, password, navController) { success ->
+                            loginError = !success
+                        }
+                    })
                 }
             }
         }
 
         @Composable
-        private fun LoginButton(onClick: () -> Unit) {
-            Box(
-                contentAlignment = Alignment.Center,
+        private fun LoginButton(onLogin: () -> Unit) {
+            Button(
+                onClick = onLogin,
                 modifier = Modifier
-                    .size(60.dp)
-                    .clickable(
-                        onClick = onClick,
-                        indication = rememberRipple(bounded = false, color = Color.White),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+                    .height(48.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.botao_login),
-                    contentDescription = "Login Button"
-                )
+                Text("Login")
             }
         }
+
+
+        private fun performLogin(email: String, password: String, navController: NavController, onResult: (Boolean) -> Unit) {
+            if (email.isBlank() || password.isBlank()) {
+                onResult(false) // Não realizar login se e-mail ou senha estiverem vazios, pra evitar crashar o app
+                return
+            }
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        onResult(true)
+                        navController.navigate("home")
+                    } else {
+                        onResult(false)
+                    }
+                }
+        }
+
     }
 }

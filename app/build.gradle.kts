@@ -76,4 +76,6 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.0.0")
     implementation("io.coil-kt:coil-compose:1.4.0")
     implementation("com.google.dagger:hilt-android:2.40.5")
+    implementation("com.google.firebase:firebase-bom:26.2.0")
+    implementation("com.google.firebase:firebase-auth")
 }
