@@ -22,52 +22,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.artsavvy.R
+import com.example.artsavvy.ui.components.TopBar
 
 class Home {
 
     companion object{
         @Composable
         fun Screen(navController: NavController) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-            ) {
+            Surface (modifier = Modifier.fillMaxSize()){
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(30.dp)
-                            .clip(RoundedCornerShape(10.dp)),
-                        contentAlignment = Alignment.Center
-                    ){
-                        IconButton(
-                            onClick = { navController.navigate("login") },
-                            modifier = Modifier.align(Alignment.TopStart)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.botao_voltar),
-                                contentDescription = "Botão de voltar a página",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                        IconButton(
-                            onClick = { /* TODO: Handle play action */ },
-                            modifier = Modifier.align(Alignment.TopEnd)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.botao_play),
-                                contentDescription = "Botão de reproduzir audio",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
-
+                    TopBar(backButton = { navController.navigate("login") }, routeName = "home")
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Box(

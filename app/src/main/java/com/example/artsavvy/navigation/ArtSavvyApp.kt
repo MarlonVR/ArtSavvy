@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.artsavvy.ui.screens.Exhibition
 import com.example.artsavvy.ui.screens.Home
 import com.example.artsavvy.ui.screens.Login
+import com.example.artsavvy.ui.screens.Register
 
 object ArtSavvyApp {
     @Composable
@@ -21,6 +22,9 @@ object ArtSavvyApp {
             }
             composable("exhibition") {
                 Exhibition.Screen(navController)
+            }
+            composable("register") {
+                Register.Screen(navController)
             }
         }
     }

@@ -1,35 +1,30 @@
 package com.example.artsavvy.ui.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.artsavvy.R
+import com.example.artsavvy.manager.UserManager
+import com.example.artsavvy.model.User
+import com.example.artsavvy.ui.components.TopBar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
-class Login {
+class Register {
     companion object {
         @Composable
         fun Screen(navController: NavController) {
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
-            var loginError by remember { mutableStateOf(false) }
+            var registrationError by remember { mutableStateOf(false) }
+            var errorMessage by remember { mutableStateOf("") }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(
@@ -41,7 +36,7 @@ class Login {
                         .align(Alignment.Center)
                 ) {
                     Text(
-                        text = "Art Savvy",
+                        text = "Cadastre-se no Art Savvy",
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
@@ -63,35 +58,37 @@ class Login {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth()
                     )
-                    if (loginError) {
+                    if (registrationError) {
                         Text(
-                            "Email ou senha incorretos. Tente novamente.",
+                            errorMessage,
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    LoginButton(onLogin = {
-                        performLogin(email, password, navController) { success ->
-                            loginError = !success
+                    RegisterButton(onRegister = {
+                        performRegistration(email, password, navController) { success, message ->
+                            registrationError = !success
+                            errorMessage = message
                         }
                     })
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextButton(onNavigate = { navController.navigate("register") })
+                    TextButton {
+                        navController.navigate("login")
+                    }
                 }
             }
         }
 
         @Composable
-        private fun LoginButton(onLogin: () -> Unit) {
+        private fun RegisterButton(onRegister: () -> Unit) {
             Button(
-                onClick = onLogin,
+                onClick = onRegister,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp)
                     .height(48.dp)
             ) {
-                Text("Login")
+                Text("Criar Conta")
             }
         }
 
@@ -99,24 +96,27 @@ class Login {
         private fun TextButton(onNavigate: () -> Unit) {
             OutlinedButton(
                 onClick = onNavigate,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
             ) {
-                Text("Não tem uma conta? Cadastre-se")
+                Text("Já tem uma conta? Faça o login")
             }
         }
 
-        private fun performLogin(email: String, password: String, navController: NavController, onResult: (Boolean) -> Unit) {
+        private fun performRegistration(email: String, password: String, navController: NavController, onResult: (Boolean, String) -> Unit) {
             if (email.isBlank() || password.isBlank()) {
-                onResult(false) // Não tentar realizar login se e-mail ou senha estiverem vazios
+                onResult(false, "Email e senha não podem ser vazios")
                 return
             }
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+            FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        onResult(true)
+                        onResult(true, "")
+                        UserManager(FirebaseDatabase.getInstance()).addUser(User("qualquercoisa", email, false))
                         navController.navigate("home")
                     } else {
-                        onResult(false)
+                        onResult(false, task.exception?.localizedMessage ?: "Falha no cadastro")
                     }
                 }
         }
