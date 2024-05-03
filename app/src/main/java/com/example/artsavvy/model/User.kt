@@ -3,5 +3,5 @@ package com.example.artsavvy.model
 data class User(
     val id: String = "",
     val email: String = "",
-    val isAdmin: Boolean = false
+    val admin: Boolean = false
 )

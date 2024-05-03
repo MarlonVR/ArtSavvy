@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalTextStyle
@@ -38,16 +40,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.artsavvy.R
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun TopBar(backButton: () -> Unit, routeName: String) {
+fun TopBar(routeName: String, navController: NavController) {
     val text = when (routeName) {
         "home" -> "Exposições"
         "exhibition" -> "Obras em Exposição"
         else -> ""
     }
     var showSearchBar by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     TopAppBar(
         backgroundColor = MaterialTheme.colors.background,
@@ -58,7 +63,13 @@ fun TopBar(backButton: () -> Unit, routeName: String) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = backButton, modifier = Modifier.size(48.dp)) {
+            IconButton(onClick = {
+                if (routeName == "home") {
+                    showLogoutDialog = true
+                } else if(routeName == "exhibition"){
+                    navController.navigate("home")
+                }
+            }, modifier = Modifier.size(48.dp)) {
                 Icon(
                     painter = painterResource(id = R.drawable.botao_voltar),
                     contentDescription = "Voltar",
@@ -95,7 +106,36 @@ fun TopBar(backButton: () -> Unit, routeName: String) {
             }
         }
     }
+
+    if (showLogoutDialog) {
+        LogoutDialog(onConfirm = {
+            FirebaseAuth.getInstance().signOut()
+            navController.navigate("login")
+        }, onDismiss = {
+            showLogoutDialog = false
+        })
+    }
 }
+
+@Composable
+fun LogoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Logout") },
+        text = { Text("Deseja fazer o logout?") },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Sim")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Não")
+            }
+        }
+    )
+}
+
 
 @Composable
 private fun SearchBar(onClose: () -> Unit) {

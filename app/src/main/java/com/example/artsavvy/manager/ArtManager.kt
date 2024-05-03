@@ -44,4 +44,17 @@ class ArtManager(private val database: FirebaseDatabase) {
             callback(null)
         }
     }
+
+    fun getArtsByExhibitionId(exhibitionId: String, callback: (List<Art>) -> Unit) {
+        artsRef.orderByChild("exhibitionId").equalTo(exhibitionId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val arts = snapshot.children.mapNotNull { it.getValue(Art::class.java) }
+                    callback(arts)
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    //
+                }
+            })
+    }
 }

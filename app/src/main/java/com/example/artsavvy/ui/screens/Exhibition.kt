@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,44 +44,41 @@ class Exhibition {
 
     companion object{
         @Composable
-        fun Screen(navController: NavController) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Column {
-                    TopBar(backButton = { navController.navigate("home") }, "exhibition")
-                    ArtList(reloadPage = { navController.navigate("exhibition") })
-                }
-            }
-        }
-
-
-        @Composable
-        fun ArtList(reloadPage: () -> Unit) {
+        fun Screen(navController: NavController, exhibitionId: String) {
             val artManager: ArtManager = AppModule.provideArtManager(AppModule.provideFirebaseDatabase())
             val artViewModel = remember { ArtViewModel(artManager) }
+
+            LaunchedEffect(exhibitionId) {
+                artViewModel.loadArtsForExhibition(exhibitionId)
+            }
+
             val artPieces by artViewModel.artPieces.observeAsState(initial = emptyList())
             val isAdmin by artViewModel.isAdmin.observeAsState(initial = false)
 
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                LazyColumn {
-                    items(artPieces, key = { art -> art.id }) { art ->
-                        ArtCard(art, artManager, isAdmin){
-                             artManager.removeArt(art.id)
-                             reloadPage()
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Column {
+                    TopBar("exhibition", navController)
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        items(artPieces, key = { art -> art.id }) { art ->
+                            ArtCard(art, isAdmin) {
+                                artViewModel.removeArt(art.id)
+                                navController.navigate("exhibition/$exhibitionId")
+                            }
                         }
                     }
                 }
             }
         }
 
-
         @Composable
-        fun ArtCard(art: Art, artManager: ArtManager, isAdmin: Boolean, onDelete: () -> Unit) {
+        fun ArtCard(art: Art, isAdmin: Boolean, onDelete: () -> Unit) {
             Card(
                 modifier = Modifier
-                    .width(300.dp)
+                    .fillMaxWidth()
                     .padding(4.dp),
                 shape = RoundedCornerShape(10.dp),
                 elevation = 4.dp
@@ -108,12 +107,11 @@ class Exhibition {
 
                     if (isAdmin) {
                         Row(
-                            Modifier
-                                .fillMaxWidth(),
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            EditableTextLink(text = "Editar", onClick = { /* TODO */ })
-                            EditableTextLink(text = "Excluir", onClick = { onDelete();  })
+                            EditableTextLink(text = "Editar", onClick = { /* TODO: Implementar edição */ })
+                            EditableTextLink(text = "Excluir", onClick = onDelete)
                         }
                     }
                 }
@@ -133,9 +131,5 @@ class Exhibition {
                 modifier = Modifier.padding(4.dp)
             )
         }
-
-
-
-
     }
 }

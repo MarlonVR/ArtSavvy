@@ -10,9 +10,8 @@ class UserManager(private val database: FirebaseDatabase) {
 
     private val usersRef = database.getReference("Users")
 
-    fun addUser(user: User) {
-        val id = usersRef.push().key ?: return
-        usersRef.child(id).setValue(user.copy(id = id))
+    fun addUser(uid: String, user: User) {
+        usersRef.child(uid).setValue(user.copy(id = uid))
     }
 
     fun getAllUsers(callback: (List<User>) -> Unit) {

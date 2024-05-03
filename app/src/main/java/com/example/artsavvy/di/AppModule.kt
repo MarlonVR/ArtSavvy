@@ -24,10 +24,4 @@ object AppModule {
     fun provideArtManager(database: FirebaseDatabase): ArtManager {
         return ArtManager(database)
     }
-
-    @Provides
-    @Singleton
-    fun provideUserManager(database: FirebaseDatabase): UserManager {
-        return UserManager(database)
-    }
 }

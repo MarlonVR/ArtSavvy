@@ -21,33 +21,36 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
     val isAdmin: LiveData<Boolean> = _isAdmin
 
     init {
-        loadArtworks()
         checkIfUserIsAdmin()
     }
 
-    private fun loadArtworks() {
-        artManager.getAllArts { artworks ->
-            _artPieces.postValue(artworks)
+    fun loadArtsForExhibition(exhibitionId: String) {
+        artManager.getArtsByExhibitionId(exhibitionId) { arts ->
+            _artPieces.postValue(arts)
         }
     }
 
     private fun checkIfUserIsAdmin() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         userId?.let { uid ->
-            provideFirebaseDatabase().reference.child("Users").child(uid)
+            FirebaseDatabase.getInstance().reference.child("Users").child(uid)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        _isAdmin.value = snapshot.child("isAdmin").getValue(Boolean::class.java) ?: false
+                        _isAdmin.value = snapshot.child("admin").getValue(Boolean::class.java) ?: false
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        // Log error
                         _isAdmin.value = false
                     }
                 })
         } ?: run {
             _isAdmin.value = false
         }
+    }
+
+
+    fun removeArt(artId: String) {
+        artManager.removeArt(artId)
     }
 }
 

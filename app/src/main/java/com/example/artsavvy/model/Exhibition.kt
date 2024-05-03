@@ -5,6 +5,7 @@ data class Exhibition(
     val name: String = "",
     val description: String = "",
     val start: String = "",
-    val end: String = ""
+    val end: String = "",
+    val imgUrl: String = ""
 )
 

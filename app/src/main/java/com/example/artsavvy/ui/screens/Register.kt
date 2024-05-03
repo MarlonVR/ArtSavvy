@@ -112,13 +112,24 @@ class Register {
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        onResult(true, "")
-                        UserManager(FirebaseDatabase.getInstance()).addUser(User("qualquercoisa", email, false))
-                        navController.navigate("home")
+                        val firebaseUser = task.result?.user
+                        if (firebaseUser != null) {
+                            val user = User(
+                                id = firebaseUser.uid,
+                                email = email,
+                                admin = false
+                            )
+                            UserManager(FirebaseDatabase.getInstance()).addUser(firebaseUser.uid, user)
+                            navController.navigate("home")
+                            onResult(true, "")
+                        } else {
+                            onResult(false, "Erro ao obter informações do usuário")
+                        }
                     } else {
                         onResult(false, task.exception?.localizedMessage ?: "Falha no cadastro")
                     }
                 }
         }
+
     }
 }

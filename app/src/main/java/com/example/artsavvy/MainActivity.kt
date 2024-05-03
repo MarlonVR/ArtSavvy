@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.artsavvy.manager.ArtManager
 import com.example.artsavvy.model.Art
+import com.example.artsavvy.model.Exhibition
 import com.example.artsavvy.navigation.ArtSavvyApp
 import com.example.artsavvy.ui.screens.Login
 import com.example.artsavvy.ui.theme.ArtSavvyTheme
@@ -44,3 +45,4 @@ fun testAddArt() {
 
     artManager.addArt(newArt)
 }
+
