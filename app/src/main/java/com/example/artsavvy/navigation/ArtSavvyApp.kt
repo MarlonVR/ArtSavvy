@@ -37,6 +37,16 @@ object ArtSavvyApp {
                     Exhibition.Screen(navController, exhibitionId)
                 }
             }
+            composable(
+                route = "edit_art/{artId}",
+                arguments = listOf(navArgument("artId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val artId = backStackEntry.arguments?.getString("artId")
+                if (artId != null && artId.isNotBlank()) {
+                    Exhibition.UpdateArt(navController, artId)
+                }
+            }
+
         }
     }
 }

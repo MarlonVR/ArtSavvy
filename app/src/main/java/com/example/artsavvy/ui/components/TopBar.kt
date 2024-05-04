@@ -66,8 +66,8 @@ fun TopBar(routeName: String, navController: NavController) {
             IconButton(onClick = {
                 if (routeName == "home") {
                     showLogoutDialog = true
-                } else if(routeName == "exhibition"){
-                    navController.navigate("home")
+                } else {
+                    navController.popBackStack()
                 }
             }, modifier = Modifier.size(48.dp)) {
                 Icon(

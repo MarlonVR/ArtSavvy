@@ -17,6 +17,9 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
     private val _artPieces = MutableLiveData<List<Art>>()
     val artPieces: LiveData<List<Art>> = _artPieces
 
+    private val _artDetails = MutableLiveData<Art?>()
+    val artDetails: LiveData<Art?> = _artDetails
+
     private val _isAdmin = MutableLiveData<Boolean>()
     val isAdmin: LiveData<Boolean> = _isAdmin
 
@@ -48,6 +51,21 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
         }
     }
 
+
+    fun getArtById(artId: String, callback: (Art?) -> Unit) {
+        artManager.getArt(artId) { art ->
+            _artDetails.postValue(art)
+            callback(art)
+        }
+    }
+
+    fun editArt(artId: String, updatedArt: Art) {
+        val updatedFields = mapOf(
+            "name" to updatedArt.name,
+            "author" to updatedArt.author
+        )
+        artManager.editArt(artId, updatedFields)
+    }
 
     fun removeArt(artId: String) {
         artManager.removeArt(artId)
