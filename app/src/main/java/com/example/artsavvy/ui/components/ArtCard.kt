@@ -1,6 +1,7 @@
 package com.example.artsavvy.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,15 +21,23 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.artsavvy.model.Art
 
 @Composable
-fun ArtCard(art: Art, isAdmin: Boolean, onDelete: () -> Unit, onEdit: () -> Unit) {
+fun ArtCard(
+    art: Art,
+    isAdmin: Boolean,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
         elevation = 4.dp
     ) {
@@ -66,6 +75,7 @@ fun ArtCard(art: Art, isAdmin: Boolean, onDelete: () -> Unit, onEdit: () -> Unit
         }
     }
 }
+
     @Composable
     private fun EditableTextLink(text: String, onClick: () -> Unit) {
         val annotatedText = buildAnnotatedString {

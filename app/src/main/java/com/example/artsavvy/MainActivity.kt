@@ -35,10 +35,10 @@ fun LoginScreenPreview() {
 
 fun testAddArt() {
     val newArt = Art(
-        name = "The Starry Night",
-        author = "Vincent van Gogh",
-        exhibitionId = "exhibition1",
-        imageUrl = "https://imgs.search.brave.com/dr6SvW3KB8OUVz0l9G0MI6LL5bo-O9ikhrvLTdRs8eQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9hcnRj/ZXRlcmEuYXJ0L3dw/LWNvbnRlbnQvdXBs/b2Fkcy8yMDIyLzAz/L3RpcG9zLWRlLWFy/dGVzLXZpc3VhaXMt/cG9sbG9jay0xLmpw/Zw"
+        name = "wgweggwegwgegege221342",
+        author = "Vggwgwwgwgwerg",
+        exhibitionId = "-Nwzyybx5zJmy6UY8Dcd",
+        imageUrl = "https://imgs.search.brave.com/MwnZnbqEqfTT1uUwg2YLPEMfV30ARMZ9vsR6Q0CZj5I/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMjY2/MzQyNi9waG90by9m/cmVkZXJpYy1jaG9w/aW4tcG9saXNoLWNv/bXBvc2VyLmpwZz9z/PTYxMng2MTImdz0w/Jms9MjAmYz1EdThk/bGlYZEhxbW02Vk9M/SHZyaUxxTkl1bk1P/X0MwYjNvU05yMTVj/Sk5BPQ"
     )
     val database = FirebaseDatabase.getInstance()
     val artManager = ArtManager(database)

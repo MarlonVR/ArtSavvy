@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,34 +57,56 @@ class Exhibition {
         fun Screen(navController: NavController, exhibitionId: String) {
             val artManager: ArtManager = AppModule.provideArtManager(AppModule.provideFirebaseDatabase())
             val artViewModel = remember { ArtViewModel(artManager) }
-
-            LaunchedEffect(exhibitionId) {
-                artViewModel.loadArtsForExhibition(exhibitionId)
-            }
-
             val artPieces by artViewModel.artPieces.observeAsState(initial = emptyList())
             val isAdmin by artViewModel.isAdmin.observeAsState(initial = false)
+            var isLoading by remember { mutableStateOf(true) }
+
+            LaunchedEffect(exhibitionId) {
+                artViewModel.loadArtsForExhibition(exhibitionId) {
+                    isLoading = false  // Atualiza o estado de carregamento após os dados serem carregados
+                }
+            }
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column {
-                    TopBar("exhibition", navController)
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        items(artPieces, key = { art -> art.id }) { art ->
-                            ArtCard(art, isAdmin,
-                                onDelete = {
-                                    artViewModel.removeArt(art.id)
-                                    navController.navigate("exhibition/$exhibitionId")
-                                },
-                                onEdit = {
-                                    navController.navigate("edit_art/${art.id}")
-                                }
-                            )
+                    TopBar(routeName = "exhibition", navController = navController)
+                    if (isLoading) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
                         }
-
+                    } else if (artPieces.isEmpty()) {
+                        Text(
+                            text = "Por enquanto sem obras",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            style = MaterialTheme.typography.subtitle1,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colors.onBackground
+                        )
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            items(artPieces, key = { art -> art.id }) { art ->
+                                ArtCard(
+                                    art = art,
+                                    isAdmin = isAdmin,
+                                    onDelete = {
+                                        artViewModel.removeArt(art.id)
+                                        navController.navigate("exhibition/$exhibitionId")
+                                    },
+                                    onEdit = {
+                                        navController.navigate("edit_art/${art.id}")
+                                    },
+                                    onClick = {
+                                        navController.navigate("art_details/${art.id}")
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -108,7 +131,7 @@ class Exhibition {
                 color = MaterialTheme.colors.background
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    TopBar(routeName = "Editar Obra", navController = navController)
+                    TopBar(routeName = "updateArt", navController = navController)
                     if (isLoading) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -167,14 +190,5 @@ class Exhibition {
                 }
             }
         }
-
-
-
-
-
-
-
-
-
     }
 }

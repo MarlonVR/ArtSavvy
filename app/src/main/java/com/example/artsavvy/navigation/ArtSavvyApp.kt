@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.artsavvy.ui.screens.ArtDetails
 import com.example.artsavvy.ui.screens.Exhibition
 import com.example.artsavvy.ui.screens.Home
 import com.example.artsavvy.ui.screens.Login
@@ -44,6 +45,15 @@ object ArtSavvyApp {
                 val artId = backStackEntry.arguments?.getString("artId")
                 if (artId != null && artId.isNotBlank()) {
                     Exhibition.UpdateArt(navController, artId)
+                }
+            }
+            composable(
+                route = "art_details/{artId}",
+                arguments = listOf(navArgument("artId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val artId = backStackEntry.arguments?.getString("artId")
+                if (artId != null && artId.isNotBlank()) {
+                    ArtDetails.Screen(navController, artId)
                 }
             }
 

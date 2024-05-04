@@ -1,11 +1,15 @@
 package com.example.artsavvy.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.artsavvy.di.AppModule.provideCommentsManager
 import com.example.artsavvy.di.AppModule.provideFirebaseDatabase
 import com.example.artsavvy.manager.ArtManager
+import com.example.artsavvy.manager.CommentsManager
 import com.example.artsavvy.model.Art
+import com.example.artsavvy.model.Comment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -23,14 +27,36 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
     private val _isAdmin = MutableLiveData<Boolean>()
     val isAdmin: LiveData<Boolean> = _isAdmin
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _comments = MutableLiveData<List<Comment>>()
+    val comments: LiveData<List<Comment>> = _comments
+
+    private val commentsManager = provideCommentsManager(provideFirebaseDatabase())
+
     init {
         checkIfUserIsAdmin()
     }
 
-    fun loadArtsForExhibition(exhibitionId: String) {
+    fun loadArtsForExhibition(exhibitionId: String, onComplete: () -> Unit = {}) {
+        _isLoading.value = true
         artManager.getArtsByExhibitionId(exhibitionId) { arts ->
             _artPieces.postValue(arts)
+            _isLoading.value = false
+            onComplete()
         }
+    }
+
+    fun loadCommentsForArt(artId: String) {
+        commentsManager.getComments(artId) { fetchedComments ->
+            Log.d("ArtDetails", "Loaded comments: ${fetchedComments.size}")
+            _comments.postValue(fetchedComments)
+        }
+    }
+
+    fun reloadComments(artId: String) {
+        loadCommentsForArt(artId)
     }
 
     private fun checkIfUserIsAdmin() {
