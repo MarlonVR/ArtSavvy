@@ -43,7 +43,7 @@ object ArtSavvyApp {
                 arguments = listOf(navArgument("artId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val artId = backStackEntry.arguments?.getString("artId")
-                if (artId != null && artId.isNotBlank()) {
+                if (!artId.isNullOrBlank()) {
                     Exhibition.UpdateArt(navController, artId)
                 }
             }
@@ -52,7 +52,7 @@ object ArtSavvyApp {
                 arguments = listOf(navArgument("artId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val artId = backStackEntry.arguments?.getString("artId")
-                if (artId != null && artId.isNotBlank()) {
+                if (!artId.isNullOrBlank()) {
                     ArtDetails.Screen(navController, artId)
                 }
             }

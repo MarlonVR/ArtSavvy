@@ -15,12 +15,14 @@ import com.example.artsavvy.manager.UserManager
 import com.example.artsavvy.model.User
 import com.example.artsavvy.ui.components.TopBar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
 
 class Register {
     companion object {
         @Composable
         fun Screen(navController: NavController) {
+            var username by remember { mutableStateOf("") }
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
             var registrationError by remember { mutableStateOf(false) }
@@ -40,6 +42,14 @@ class Register {
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
+                    TextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Nome de Usuário") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     TextField(
                         value = email,
                         onValueChange = { email = it },
@@ -67,7 +77,7 @@ class Register {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     RegisterButton(onRegister = {
-                        performRegistration(email, password, navController) { success, message ->
+                        performRegistration(email, password, username, navController) { success, message ->
                             registrationError = !success
                             errorMessage = message
                         }
@@ -104,9 +114,9 @@ class Register {
             }
         }
 
-        private fun performRegistration(email: String, password: String, navController: NavController, onResult: (Boolean, String) -> Unit) {
-            if (email.isBlank() || password.isBlank()) {
-                onResult(false, "Email e senha não podem ser vazios")
+        private fun performRegistration(email: String, password: String, username: String, navController: NavController, onResult: (Boolean, String) -> Unit) {
+            if (email.isBlank() || password.isBlank() || username.isBlank()) {
+                onResult(false, "Nome de usuário, email e senha não podem ser vazios")
                 return
             }
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
@@ -114,14 +124,23 @@ class Register {
                     if (task.isSuccessful) {
                         val firebaseUser = task.result?.user
                         if (firebaseUser != null) {
-                            val user = User(
-                                id = firebaseUser.uid,
-                                email = email,
-                                admin = false
-                            )
-                            UserManager(FirebaseDatabase.getInstance()).addUser(firebaseUser.uid, user)
-                            navController.navigate("home")
-                            onResult(true, "")
+                            val userProfileChangeRequest = UserProfileChangeRequest.Builder()
+                                .setDisplayName(username)
+                                .build()
+                            firebaseUser.updateProfile(userProfileChangeRequest).addOnCompleteListener { updateTask ->
+                                if (updateTask.isSuccessful) {
+                                    val user = User(
+                                        id = firebaseUser.uid,
+                                        email = email,
+                                        admin = false
+                                    )
+                                    UserManager(FirebaseDatabase.getInstance()).addUser(firebaseUser.uid, user)
+                                    navController.navigate("home")
+                                    onResult(true, "")
+                                } else {
+                                    onResult(false, "Falha ao atualizar o perfil do usuário")
+                                }
+                            }
                         } else {
                             onResult(false, "Erro ao obter informações do usuário")
                         }
