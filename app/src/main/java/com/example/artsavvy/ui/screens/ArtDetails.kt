@@ -1,6 +1,5 @@
 package com.example.artsavvy.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -36,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -44,13 +42,16 @@ import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.di.AppModule.provideCommentsManager
 import com.example.artsavvy.di.AppModule.provideFirebaseDatabase
 import com.example.artsavvy.manager.ArtManager
-import com.example.artsavvy.manager.CommentsManager
 import com.example.artsavvy.model.Art
 import com.example.artsavvy.ui.components.TopBar
 import com.example.artsavvy.viewmodel.ArtViewModel
 import com.example.artsavvy.model.Comment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.Duration
 
 class ArtDetails {
     companion object{
@@ -89,7 +90,7 @@ class ArtDetails {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     TopBar(routeName = "Detalhes da Obra", navController = navController)
-                    Spacer(Modifier.height(16.dp)) // Ajuste de espaçamento após a barra superior
+                    Spacer(Modifier.height(16.dp))
                 }
                 item {
                     Image(
@@ -157,51 +158,100 @@ class ArtDetails {
 
         @Composable
         private fun CommentItem(comment: Comment) {
+            var elapsedTime by remember { mutableStateOf("") }
+
+            LaunchedEffect(key1 = comment, key2 = true) {
+                while (true) {
+                    elapsedTime = calculateElapsedTime(comment.timestamp)
+                    kotlinx.coroutines.delay(60000) // Atualiza a cada minuto
+                }
+            }
+
             Row(
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 8.dp, horizontal = 16.dp)
                     .fillMaxWidth()
-                    .background(color = Color.LightGray) // Fundo cinza para facilitar a visualização
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colors.onBackground.copy(alpha = 0.05f))
+                    .padding(8.dp)
             ) {
                 Icon(
                     Icons.Default.AccountCircle,
                     contentDescription = "Avatar",
-                    modifier = Modifier.size(48.dp) // Tamanho maior para o ícone
+                    modifier = Modifier
+                        .size(48.dp)
+                        .padding(8.dp)
                 )
-                Column(modifier = Modifier.padding(start = 8.dp).fillMaxWidth()) {
-                    Text(
-                        comment.userId,
-                        style = MaterialTheme.typography.subtitle2,
-                        color = Color.Black, // Cor preta para garantir visibilidade
-                        modifier = Modifier.padding(bottom = 2.dp) // Espaço adicional abaixo do nome do usuário
-                    )
+                Column(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .align(Alignment.CenterVertically)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "@${comment.userName}",
+                            style = MaterialTheme.typography.subtitle1,
+                            color = MaterialTheme.colors.onSurface
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = elapsedTime,
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.onSurface
+                        )
+                    }
                     Text(
                         comment.text,
-                        style = MaterialTheme.typography.body1, // Use um estilo de texto maior
-                        color = Color.Black // Cor preta para garantir visibilidade
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface
                     )
                 }
             }
         }
+
+
+
 
         private fun onCommentPosted(artId: String, commentText: String, artViewModel: ArtViewModel) {
             if (commentText.isBlank()) {
                 return
             }
             val currentUser = FirebaseAuth.getInstance().currentUser ?: return
+            val currentTimeMillis = System.currentTimeMillis()
             val comment = Comment(
                 userId = currentUser.uid,
                 userName = currentUser.displayName ?: "Anônimo",
                 text = commentText,
                 artId = artId,
-                timestamp = System.currentTimeMillis()
+                timestamp = currentTimeMillis
             )
             val commentsManager = provideCommentsManager(provideFirebaseDatabase())
             commentsManager.addComment(comment, onSuccess = {
                 artViewModel.reloadComments(artId)
             }, onFailure = {
-                // tratar erros
+                // Tratar erros
             })
+        }
+
+
+        private fun calculateElapsedTime(timestamp: Long): String {
+            val commentTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneOffset.UTC)
+            val currentTime = LocalDateTime.now(ZoneOffset.UTC)
+            val duration = Duration.between(commentTime, currentTime)
+
+            val days = duration.toDays()
+            val hours = duration.toHours() % 24
+            val minutes = duration.toMinutes() % 60
+            val seconds = duration.seconds % 60
+
+            return when {
+                days > 0 -> "$days dias atrás"
+                hours > 0 -> "$hours horas atrás"
+                minutes > 0 -> "$minutes minutos atrás"
+                else -> "$seconds segundos atrás"
+            }
         }
 
     }
