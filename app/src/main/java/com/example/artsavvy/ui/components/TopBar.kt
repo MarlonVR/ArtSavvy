@@ -4,11 +4,9 @@ package com.example.artsavvy.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +16,6 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -27,6 +24,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,15 +35,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.artsavvy.R
+import com.example.artsavvy.viewmodel.TopBarViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun TopBar(routeName: String, navController: NavController) {
+fun TopBar(routeName: String, navController: NavController, exhibitionId: String? = null) {
     val text = when (routeName) {
         "home" -> "Exposições"
         "exhibition" -> "Obras em Exposição"
@@ -53,6 +51,9 @@ fun TopBar(routeName: String, navController: NavController) {
     }
     var showSearchBar by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val topBarViewModel = remember { TopBarViewModel() }
+    val isAdmin by topBarViewModel.isAdmin.collectAsState()
+
 
     TopAppBar(
         backgroundColor = MaterialTheme.colors.background,
@@ -64,45 +65,75 @@ fun TopBar(routeName: String, navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         ) {
             IconButton(onClick = {
-                if (routeName == "home") {
-                    showLogoutDialog = true
+                if (!showSearchBar) {
+                    if (routeName == "home") {
+                        showLogoutDialog = true
+                    } else {
+                        navController.popBackStack()
+                    }
                 } else {
-                    navController.popBackStack()
+                    showSearchBar = false
                 }
             }, modifier = Modifier.size(48.dp)) {
-                Icon(
-                    painter = painterResource(id = R.drawable.botao_voltar),
-                    contentDescription = "Voltar",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colors.onBackground
-                )
+                if (showSearchBar) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Fechar Pesquisa",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.botao_voltar),
+                        contentDescription = "Voltar",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
             }
-            Spacer(Modifier.weight(1f))
             if (!showSearchBar) {
+                Spacer(Modifier.weight(1f))
                 Text(
                     text = text,
                     style = MaterialTheme.typography.h6,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
+                Spacer(Modifier.weight(1f))
+                if (isAdmin && (routeName == "exhibition" || routeName == "home")) {
+                    IconButton(
+                        onClick = {
+                            if (routeName == "exhibition") {
+                                navController.navigate("add_artwork/$exhibitionId")
+                            } else {
+                                // Implementar navegação para tela de adicionar exposição
+                            }
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.plus_icon),
+                            contentDescription = "Adicionar obra"
+                        )
+                    }
+                }
+                IconButton(onClick = { /* TOCAR NARRAÇÃO*/ }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
+                IconButton(onClick = { showSearchBar = !showSearchBar }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Pesquisar",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
             } else {
-                SearchBar { showSearchBar = false }
-            }
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = {/* TOCAR NARRAÇÃO*/}, modifier = Modifier.size(48.dp)) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "Play",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colors.onBackground
-                )
-            }
-            IconButton(onClick = { showSearchBar = !showSearchBar }, modifier = Modifier.size(48.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Pesquisar",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colors.onBackground
-                )
+                SearchBar(onClose = { showSearchBar = false })
             }
         }
     }
@@ -117,8 +148,9 @@ fun TopBar(routeName: String, navController: NavController) {
     }
 }
 
+
 @Composable
-fun LogoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+private fun LogoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Logout") },

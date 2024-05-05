@@ -43,4 +43,13 @@ class UserManager(private val database: FirebaseDatabase) {
             callback(null)
         }
     }
+
+    fun isAdmin(userId: String): Boolean {
+        var isAdmin = false
+        val userRef = database.reference.child("users/$userId/admin")
+        userRef.get().addOnSuccessListener { snapshot ->
+            isAdmin = snapshot.getValue(Boolean::class.java) ?: false
+        }
+        return isAdmin
+    }
 }

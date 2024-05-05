@@ -69,7 +69,7 @@ class Exhibition {
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column {
-                    TopBar(routeName = "exhibition", navController = navController)
+                    TopBar(routeName = "exhibition", navController = navController, exhibitionId)
                     if (isLoading) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
