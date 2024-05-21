@@ -7,11 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.artsavvy.ui.screens.AddArtworkScreen
+import com.example.artsavvy.ui.screens.AddExhibitionScreen
 import com.example.artsavvy.ui.screens.ArtDetails
 import com.example.artsavvy.ui.screens.Exhibition
 import com.example.artsavvy.ui.screens.Home
 import com.example.artsavvy.ui.screens.Login
 import com.example.artsavvy.ui.screens.Register
+import com.example.artsavvy.ui.screens.UpdateExhibition
 import com.google.firebase.auth.FirebaseAuth
 
 object ArtSavvyApp {
@@ -49,6 +51,15 @@ object ArtSavvyApp {
                 }
             }
             composable(
+                route = "edit_exhibition/{exhibitionId}",
+                arguments = listOf(navArgument("exhibitionId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val exhibitionId = backStackEntry.arguments?.getString("exhibitionId")
+                if (!exhibitionId.isNullOrBlank()) {
+                    UpdateExhibition(navController, exhibitionId)
+                }
+            }
+            composable(
                 route = "art_details/{artId}",
                 arguments = listOf(navArgument("artId") { type = NavType.StringType })
             ) { backStackEntry ->
@@ -65,6 +76,9 @@ object ArtSavvyApp {
                 if (!exhibitionId.isNullOrBlank()) {
                     AddArtworkScreen(navController, exhibitionId)
                 }
+            }
+            composable("add_exhibition") {
+                AddExhibitionScreen(navController)
             }
 
         }

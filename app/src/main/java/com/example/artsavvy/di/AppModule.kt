@@ -3,6 +3,7 @@ package com.example.artsavvy.di
 import com.google.firebase.database.FirebaseDatabase
 import com.example.artsavvy.manager.ArtManager
 import com.example.artsavvy.manager.CommentsManager
+import com.example.artsavvy.manager.ExhibitionManager
 import com.example.artsavvy.manager.UserManager
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
@@ -34,6 +35,12 @@ object AppModule {
     @Singleton
     fun provideCommentsManager(database: FirebaseDatabase): CommentsManager {
         return CommentsManager(database)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExhibitionManager(database: FirebaseDatabase): ExhibitionManager {
+        return ExhibitionManager(database)
     }
 
 

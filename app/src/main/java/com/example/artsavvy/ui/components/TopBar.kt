@@ -104,8 +104,8 @@ fun TopBar(routeName: String, navController: NavController, exhibitionId: String
                         onClick = {
                             if (routeName == "exhibition") {
                                 navController.navigate("add_artwork/$exhibitionId")
-                            } else {
-                                // Implementar navegação para tela de adicionar exposição
+                            } else if (routeName == "home"){
+                                navController.navigate("add_exhibition")
                             }
                         },
                         modifier = Modifier.size(36.dp)

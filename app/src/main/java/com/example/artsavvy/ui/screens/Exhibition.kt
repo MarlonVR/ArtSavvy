@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Scaffold
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
@@ -116,79 +118,92 @@ class Exhibition {
         fun UpdateArt(navController: NavController, artId: String) {
             val artManager: ArtManager = AppModule.provideArtManager(AppModule.provideFirebaseDatabase())
             val artViewModel = remember { ArtViewModel(artManager) }
-            var art by remember { mutableStateOf<Art?>(null) }
+            var artDetails by remember { mutableStateOf<Art?>(null) }
             var isLoading by remember { mutableStateOf(true) }
+
+            val name = remember(artDetails) { mutableStateOf(artDetails?.name ?: "") }
+            val author = remember(artDetails) { mutableStateOf(artDetails?.author ?: "") }
+            val imageUrl = remember(artDetails) { mutableStateOf(artDetails?.imageUrl ?: "") }
+            val description = remember(artDetails) { mutableStateOf(artDetails?.description ?: "") }
 
             LaunchedEffect(artId) {
                 artViewModel.getArtById(artId) { fetchedArt ->
-                    art = fetchedArt
+                    artDetails = fetchedArt
                     isLoading = fetchedArt == null
                 }
             }
 
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colors.background
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    TopBar(routeName = "updateArt", navController = navController)
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    } else if (art != null) {
-                        var name by remember(art) { mutableStateOf(art!!.name) }
-                        var author by remember(art) { mutableStateOf(art!!.author) }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+            Scaffold(
+                topBar = {
+                    TopBar("edit_artwork", navController)
+                }
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .padding(padding)
+                        .padding(16.dp)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    imageUrl.value.let {
+                        if (it.isNotEmpty()) {
                             Image(
-                                painter = rememberImagePainter(data = art!!.imageUrl),
-                                contentDescription = "Obra de Arte",
+                                painter = rememberImagePainter(it),
+                                contentDescription = "Artwork Image",
                                 modifier = Modifier
-                                    .width(300.dp)
-                                    .height(250.dp)
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .padding(bottom = 16.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
-                                label = { Text("Nome da Obra") },
-                                leadingIcon = { Icon(Icons.Default.Create, contentDescription = "Nome") }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = author,
-                                onValueChange = { author = it },
-                                label = { Text("Autor da Obra") },
-                                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Autor") }
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = {
-                                    artViewModel.editArt(artId, Art(id = artId, name = name, author = author))
-                                    navController.popBackStack()
-                                },
-                                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF87CEFA)),
-                                modifier = Modifier.padding(horizontal = 40.dp)
-                            ) {
-                                Text("Salvar Alterações")
-                            }
                         }
-                    } else {
-                        Text("Detalhes da obra não encontrados.", modifier = Modifier.padding(16.dp))
                     }
+
+                    Text("Editar Obra de Arte", style = MaterialTheme.typography.h6)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CustomTextField(value = name.value, onValueChange = { name.value = it }, label = "Nome da Obra")
+                    CustomTextField(value = author.value, onValueChange = { author.value = it }, label = "Autor da Obra")
+                    CustomTextField(value = description.value, onValueChange = { description.value = it }, label = "Descrição")
+                    CustomTextField(value = imageUrl.value, onValueChange = { imageUrl.value = it }, label = "Link da Imagem")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row() {
+                        Button(
+                            onClick = {
+                                artViewModel.editArt(artId, Art(
+                                    id = artId,
+                                    name = name.value,
+                                    author = author.value,
+                                    imageUrl = imageUrl.value,
+                                    description = description.value
+                                ))
+                                navController.popBackStack()
+                            },
+                        ) {
+                            Text("Salvar", color = Color.White)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                navController.popBackStack()
+                            },
+                        ) {
+                            Text("Cancelar", color = Color.White)
+                        }
+                    }
+
                 }
             }
+        }
+
+        @Composable
+        private fun CustomTextField(value: String, onValueChange: (String) -> Unit, label: String) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { androidx.compose.material.Text(label) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
         }
     }
 }

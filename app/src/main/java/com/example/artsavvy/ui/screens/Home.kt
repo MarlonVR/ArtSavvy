@@ -13,6 +13,7 @@ import androidx.navigation.NavController
 import com.example.artsavvy.ui.components.TopBar
 import com.example.artsavvy.viewmodel.ExhibitionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.artsavvy.ui.components.ArtCard
 import com.example.artsavvy.ui.components.ExhibitionCard
 
 class Home {
@@ -21,6 +22,7 @@ class Home {
         @Composable
         fun Screen(navController: NavController, viewModel: ExhibitionViewModel = viewModel()) {
             val exhibitions = viewModel.exhibitions.observeAsState(listOf())
+            val isAdmin by viewModel.isAdmin.observeAsState(initial = false)
 
             LaunchedEffect(Unit) {
                 viewModel.loadExhibitions()
@@ -37,7 +39,20 @@ class Home {
                         LazyColumn(contentPadding = PaddingValues(top = 8.dp)) {
                             items(exhibitions.value) { exhibition ->
                                 val exhibitionId = exhibition.id
-                                ExhibitionCard(exhibition, onClick = { navController.navigate("exhibition/$exhibitionId") })
+                                ExhibitionCard(
+                                    exhibition,
+                                    isAdmin,
+                                    onDelete = {
+                                        viewModel.deleteExhibition(exhibition.id)
+                                        navController.navigate("home")
+                                    },
+                                    onEdit = {
+                                        navController.navigate("edit_exhibition/$exhibitionId")
+                                    },
+                                    onClick = {
+                                        navController.navigate("exhibition/$exhibitionId")
+                                    }
+                                )
                             }
                         }
                     }

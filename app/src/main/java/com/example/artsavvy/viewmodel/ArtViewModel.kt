@@ -88,7 +88,9 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
     fun editArt(artId: String, updatedArt: Art) {
         val updatedFields = mapOf(
             "name" to updatedArt.name,
-            "author" to updatedArt.author
+            "author" to updatedArt.author,
+            "description" to updatedArt.description,
+            "imageUrl" to updatedArt.imageUrl
         )
         artManager.editArt(artId, updatedFields)
     }
