@@ -205,5 +205,6 @@ class Exhibition {
                 singleLine = true
             )
         }
+
     }
 }

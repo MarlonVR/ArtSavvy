@@ -16,6 +16,8 @@ class CommentsManager(private val database: FirebaseDatabase) {
             return
         }
 
+        comment.id = commentId
+
         databaseReference.child(commentId).setValue(comment)
             .addOnSuccessListener {
                 onSuccess()
@@ -40,12 +42,14 @@ class CommentsManager(private val database: FirebaseDatabase) {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    // Trate a falha de carregamento aqui
+                    //
                 }
             })
     }
 
-    fun removeComment(artId: String, commentId: String) {
-        commentsRef.child(artId).child(commentId).removeValue()
+    fun removeComment(commentId: String) {
+        if (commentId.isNotEmpty()) {
+            commentsRef.child(commentId).removeValue()
+        }
     }
 }

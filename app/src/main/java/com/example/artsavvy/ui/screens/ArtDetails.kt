@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,13 +18,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -42,6 +47,7 @@ import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.di.AppModule.provideCommentsManager
 import com.example.artsavvy.di.AppModule.provideFirebaseDatabase
 import com.example.artsavvy.manager.ArtManager
+import com.example.artsavvy.manager.CommentsManager
 import com.example.artsavvy.model.Art
 import com.example.artsavvy.ui.components.TopBar
 import com.example.artsavvy.viewmodel.ArtViewModel
@@ -86,7 +92,7 @@ class ArtDetails {
         }
 
         @Composable
-        private fun ArtDetailsView(art: Art, navController: NavController, comments: List<Comment>, artViewModel: ArtViewModel) {
+        fun ArtDetailsView(art: Art, navController: NavController, comments: List<Comment>, artViewModel: ArtViewModel) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     TopBar(routeName = "Detalhes da Obra", navController = navController)
@@ -100,6 +106,7 @@ class ArtDetails {
                             .fillMaxWidth()
                             .height(250.dp)
                             .clip(RoundedCornerShape(8.dp))
+                            .shadow(4.dp, RoundedCornerShape(8.dp))
                     )
                 }
                 item {
@@ -110,18 +117,22 @@ class ArtDetails {
                     Spacer(Modifier.height(16.dp))
                 }
                 item {
+                    Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08F))
                     CommentInputSection(art.id, artViewModel)
+                    Spacer(Modifier.height(8.dp))
                 }
-                this.items(comments) { comment ->
-                    CommentItem(comment)
+                items(comments) { comment ->
+                    CommentItem(comment, artViewModel)
+                    Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08F))
                 }
                 if (comments.isEmpty()) {
                     item {
-                        Text("Sem comentários ainda.", style = MaterialTheme.typography.body1, modifier = Modifier.padding(16.dp))
+                        Text("Sem comentários.", style = MaterialTheme.typography.body1, modifier = Modifier.padding(16.dp))
                     }
                 }
             }
         }
+
 
 
         @Composable
@@ -157,8 +168,9 @@ class ArtDetails {
         }
 
         @Composable
-        private fun CommentItem(comment: Comment) {
+        private fun CommentItem(comment: Comment, artViewModel: ArtViewModel) {
             var elapsedTime by remember { mutableStateOf("") }
+            val isAdmin by artViewModel.isAdmin.observeAsState(initial = false)
 
             LaunchedEffect(key1 = comment, key2 = true) {
                 while (true) {
@@ -184,6 +196,7 @@ class ArtDetails {
                 )
                 Column(
                     modifier = Modifier
+                        .weight(1f)
                         .padding(start = 8.dp)
                         .align(Alignment.CenterVertically)
                 ) {
@@ -208,8 +221,19 @@ class ArtDetails {
                         color = MaterialTheme.colors.onSurface
                     )
                 }
+                if (isAdmin) {  // botao de deletar comentarios
+                    IconButton(onClick = {
+                        val commentsManager = provideCommentsManager(provideFirebaseDatabase())
+                        commentsManager.removeComment(comment.id)
+                        artViewModel.reloadComments(comment.artId)
+                    }, modifier = Modifier.align(Alignment.CenterVertically)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Excluir Comentário", tint = MaterialTheme.colors.error)
+                    }
+                }
             }
         }
+
+
 
 
 
@@ -231,7 +255,7 @@ class ArtDetails {
             commentsManager.addComment(comment, onSuccess = {
                 artViewModel.reloadComments(artId)
             }, onFailure = {
-                // Tratar erros
+                //
             })
         }
 
