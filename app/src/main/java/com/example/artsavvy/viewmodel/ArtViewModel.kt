@@ -197,11 +197,6 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
         })
     }
 
-
-
-
-
-
 }
 
 

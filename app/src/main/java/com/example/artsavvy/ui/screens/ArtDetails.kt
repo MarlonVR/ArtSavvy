@@ -21,6 +21,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -104,71 +105,75 @@ class ArtDetails {
                 artViewModel.updateLikesCount(art.id)
             }
 
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item {
-                    TopBar(routeName = "Detalhes da Obra", navController = navController)
-                    Spacer(Modifier.height(16.dp))
-                }
-                item {
-                    Image(
-                        painter = rememberImagePainter(data = art.imageUrl),
-                        contentDescription = "Imagem da Obra",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(250.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .shadow(4.dp, RoundedCornerShape(8.dp))
-                    )
-                }
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = art.name,
-                            style = MaterialTheme.typography.h5,
-                            modifier = Modifier.weight(1f) // Título pode encolher se necessário
-                        )
-                        IconButton(onClick = {
-                            if (isLiked.value) {
-                                artViewModel.unlikeArt(userId, art.id)
-                            } else {
-                                artViewModel.likeArt(userId, art.id)
-                            }
-                            isLiked.value = !isLiked.value
-                        }) {
-                            Icon(
-                                imageVector = if (isLiked.value) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                contentDescription = if (isLiked.value) "Descurtir" else "Curtir",
-                                tint = if (isLiked.value) Color.Red else Color.Gray
-                            )
-                        }
-                        Text("${likes.value}", style = MaterialTheme.typography.subtitle1)
-                    }
-                    Text(text = "por ${art.author}", style = MaterialTheme.typography.body1)
-                    Spacer(Modifier.height(8.dp))
-                    Text(text = art.description, style = MaterialTheme.typography.body2)
-                    Spacer(Modifier.height(16.dp))
-                }
-                item {
-                    Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08F))
+            Scaffold(
+                topBar = { TopBar(routeName = "Detalhes da Obra", navController = navController) },
+                bottomBar = {
                     CommentInputSection(art.id, artViewModel)
-                    Spacer(Modifier.height(8.dp))
                 }
-                items(comments.value) { comment ->
-                    CommentItem(comment, artViewModel)
-                    Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08F))
-                }
-                if (comments.value.isEmpty()) {
+            ) { innerPadding ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
                     item {
-                        Text("Sem comentários.", style = MaterialTheme.typography.body1, modifier = Modifier.padding(16.dp))
+                        Spacer(Modifier.height(16.dp))
+                        Image(
+                            painter = rememberImagePainter(data = art.imageUrl),
+                            contentDescription = "Imagem da Obra",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(250.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .shadow(4.dp, RoundedCornerShape(8.dp))
+                        )
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = art.name,
+                                style = MaterialTheme.typography.h5,
+                                modifier = Modifier.weight(1f) // Título pode encolher se necessário
+                            )
+                            IconButton(onClick = {
+                                if (isLiked.value) {
+                                    artViewModel.unlikeArt(userId, art.id)
+                                } else {
+                                    artViewModel.likeArt(userId, art.id)
+                                }
+                                isLiked.value = !isLiked.value
+                            }) {
+                                Icon(
+                                    imageVector = if (isLiked.value) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                    contentDescription = if (isLiked.value) "Descurtir" else "Curtir",
+                                    tint = if (isLiked.value) Color.Red else Color.Gray
+                                )
+                            }
+                            Text("${likes.value}", style = MaterialTheme.typography.subtitle1)
+                        }
+                        Text(text = "por ${art.author}", style = MaterialTheme.typography.body1)
+                        Spacer(Modifier.height(8.dp))
+                        Text(text = art.description, style = MaterialTheme.typography.body2)
+                        Spacer(Modifier.height(16.dp))
+                    }
+                    items(comments.value) { comment ->
+                        CommentItem(comment, artViewModel)
+                        Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08F))
+                    }
+                    if (comments.value.isEmpty()) {
+                        item {
+                            Text("Sem comentários.", style = MaterialTheme.typography.body1, modifier = Modifier.padding(16.dp))
+                        }
                     }
                 }
             }
         }
+
 
 
 
