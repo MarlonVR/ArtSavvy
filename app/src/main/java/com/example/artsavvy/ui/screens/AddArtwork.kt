@@ -110,7 +110,8 @@ private fun addArtwork(name: String, author: String, imageUrl: String, descripti
         author = author,
         imageUrl = imageUrl,
         description = description,
-        exhibitionId = exhibitionId
+        exhibitionId = exhibitionId,
+        likes = 0
     )
 
     provideArtManager(provideFirebaseDatabase()).addArt(newArt)

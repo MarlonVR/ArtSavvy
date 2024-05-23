@@ -21,14 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.di.AppModule.provideExhibitionManager
 import com.example.artsavvy.di.AppModule.provideFirebaseDatabase
 import com.example.artsavvy.model.Exhibition
 import com.example.artsavvy.ui.components.TopBar
 
 @Composable
-fun AddExhibitionScreen(navController: NavController) {
+fun AddExhibition(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var start by remember { mutableStateOf("") }

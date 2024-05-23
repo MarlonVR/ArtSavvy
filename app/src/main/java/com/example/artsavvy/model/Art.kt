@@ -6,5 +6,6 @@ data class Art(
     val author: String = "",
     val exhibitionId: String = "",
     val imageUrl: String = "",
-    val description: String = ""
+    val description: String = "",
+    var likes: Int = 0
 )

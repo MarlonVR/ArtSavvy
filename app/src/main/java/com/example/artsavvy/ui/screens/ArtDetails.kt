@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +27,9 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -47,13 +49,11 @@ import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.di.AppModule.provideCommentsManager
 import com.example.artsavvy.di.AppModule.provideFirebaseDatabase
 import com.example.artsavvy.manager.ArtManager
-import com.example.artsavvy.manager.CommentsManager
 import com.example.artsavvy.model.Art
 import com.example.artsavvy.ui.components.TopBar
 import com.example.artsavvy.viewmodel.ArtViewModel
 import com.example.artsavvy.model.Comment
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -68,7 +68,6 @@ class ArtDetails {
 
             var art by remember { mutableStateOf<Art?>(null) }
             var isLoading by remember { mutableStateOf(true) }
-            val comments by artViewModel.comments.observeAsState(initial = emptyList())
 
             LaunchedEffect(artId) {
                 artViewModel.getArtById(artId) { fetchedArt ->
@@ -84,7 +83,7 @@ class ArtDetails {
                         CircularProgressIndicator()
                     }
                 } else if (art != null) {
-                    ArtDetailsView(art!!, navController, comments, artViewModel)
+                    ArtDetailsView(art!!, navController, artViewModel)
                 } else {
                     Text("Obra não encontrada", modifier = Modifier.padding(16.dp))
                 }
@@ -92,7 +91,19 @@ class ArtDetails {
         }
 
         @Composable
-        fun ArtDetailsView(art: Art, navController: NavController, comments: List<Comment>, artViewModel: ArtViewModel) {
+        fun ArtDetailsView(art: Art, navController: NavController, artViewModel: ArtViewModel) {
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            val isLiked = remember { mutableStateOf(false) }
+            val likes = artViewModel.likes.observeAsState(0)
+            val comments = artViewModel.comments.observeAsState(listOf())
+
+            LaunchedEffect(key1 = art.id) {
+                artViewModel.isArtLikedByUser(userId, art.id) { liked ->
+                    isLiked.value = liked
+                }
+                artViewModel.updateLikesCount(art.id)
+            }
+
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     TopBar(routeName = "Detalhes da Obra", navController = navController)
@@ -110,10 +121,36 @@ class ArtDetails {
                     )
                 }
                 item {
-                    Text(text = art.name, style = MaterialTheme.typography.h5, modifier = Modifier.padding(horizontal = 16.dp))
-                    Text(text = "por ${art.author}", style = MaterialTheme.typography.body1, modifier = Modifier.padding(horizontal = 16.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = art.name,
+                            style = MaterialTheme.typography.h5,
+                            modifier = Modifier.weight(1f) // Título pode encolher se necessário
+                        )
+                        IconButton(onClick = {
+                            if (isLiked.value) {
+                                artViewModel.unlikeArt(userId, art.id)
+                            } else {
+                                artViewModel.likeArt(userId, art.id)
+                            }
+                            isLiked.value = !isLiked.value
+                        }) {
+                            Icon(
+                                imageVector = if (isLiked.value) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (isLiked.value) "Descurtir" else "Curtir",
+                                tint = if (isLiked.value) Color.Red else Color.Gray
+                            )
+                        }
+                        Text("${likes.value}", style = MaterialTheme.typography.subtitle1)
+                    }
+                    Text(text = "por ${art.author}", style = MaterialTheme.typography.body1)
                     Spacer(Modifier.height(8.dp))
-                    Text(text = art.description, style = MaterialTheme.typography.body2, modifier = Modifier.padding(horizontal = 16.dp))
+                    Text(text = art.description, style = MaterialTheme.typography.body2)
                     Spacer(Modifier.height(16.dp))
                 }
                 item {
@@ -121,17 +158,20 @@ class ArtDetails {
                     CommentInputSection(art.id, artViewModel)
                     Spacer(Modifier.height(8.dp))
                 }
-                items(comments) { comment ->
+                items(comments.value) { comment ->
                     CommentItem(comment, artViewModel)
                     Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08F))
                 }
-                if (comments.isEmpty()) {
+                if (comments.value.isEmpty()) {
                     item {
                         Text("Sem comentários.", style = MaterialTheme.typography.body1, modifier = Modifier.padding(16.dp))
                     }
                 }
             }
         }
+
+
+
 
 
 

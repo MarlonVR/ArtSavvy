@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.artsavvy.ui.screens.AddArtworkScreen
-import com.example.artsavvy.ui.screens.AddExhibitionScreen
+import com.example.artsavvy.ui.screens.AddExhibition
 import com.example.artsavvy.ui.screens.ArtDetails
 import com.example.artsavvy.ui.screens.Exhibition
 import com.example.artsavvy.ui.screens.Home
@@ -78,7 +78,7 @@ object ArtSavvyApp {
                 }
             }
             composable("add_exhibition") {
-                AddExhibitionScreen(navController)
+                AddExhibition(navController)
             }
 
         }

@@ -28,24 +28,19 @@ class CommentsManager(private val database: FirebaseDatabase) {
     }
 
     fun getComments(artId: String, callback: (List<Comment>) -> Unit) {
-        database.getReference("Comments")
+        FirebaseDatabase.getInstance().getReference("Comments")
+            .orderByChild("timestamp")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val comments = mutableListOf<Comment>()
-                    for (childSnapshot in snapshot.children) {
-                        val comment = childSnapshot.getValue(Comment::class.java)
-                        if (comment != null && comment.artId == artId) {
-                            comments.add(comment)
-                        }
-                    }
+                    val comments = snapshot.children.mapNotNull { it.getValue(Comment::class.java) }.sortedByDescending { it.timestamp }
                     callback(comments)
                 }
-
                 override fun onCancelled(error: DatabaseError) {
-                    //
+                    callback(emptyList())
                 }
             })
     }
+
 
     fun removeComment(commentId: String) {
         if (commentId.isNotEmpty()) {
