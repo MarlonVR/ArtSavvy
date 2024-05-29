@@ -51,6 +51,28 @@ class ArtViewModel(private val artManager: ArtManager) : ViewModel() {
             onComplete()
         }
     }
+    fun searchArts(query: String, exhibitionId: String, onResults: (List<Art>) -> Unit) {
+        val artsRef = FirebaseDatabase.getInstance().getReference("Arts")
+
+        artsRef.orderByChild("name").startAt(query).endAt("$query\uf8ff")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val results = mutableListOf<Art>()
+                    for (childSnapshot in snapshot.children) {
+                        val art = childSnapshot.getValue(Art::class.java)
+                        if (art != null && art.exhibitionId == exhibitionId) {
+                            results.add(art)
+                        }
+                    }
+                    onResults(results)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResults(emptyList())
+                }
+            })
+    }
+
 
     fun loadCommentsForArt(artId: String) {
         commentsManager.getComments(artId) { fetchedComments ->

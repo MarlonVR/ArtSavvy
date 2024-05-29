@@ -106,7 +106,7 @@ class ArtDetails {
             }
 
             Scaffold(
-                topBar = { TopBar(routeName = "Detalhes da Obra", navController = navController) },
+                topBar = { TopBar(routeName = "Detalhes da Obra", navController = navController, null, {/**/}) },
                 bottomBar = {
                     CommentInputSection(art.id, artViewModel)
                 }
@@ -138,7 +138,7 @@ class ArtDetails {
                             Text(
                                 text = art.name,
                                 style = MaterialTheme.typography.h5,
-                                modifier = Modifier.weight(1f) // Título pode encolher se necessário
+                                modifier = Modifier.weight(1f)
                             )
                             IconButton(onClick = {
                                 if (isLiked.value) {

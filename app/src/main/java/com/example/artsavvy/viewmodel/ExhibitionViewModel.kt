@@ -32,6 +32,29 @@ class ExhibitionViewModel : ViewModel() {
             _exhibitions.postValue(exhibitions)
         }
     }
+
+    fun searchExhibitions(query: String, onResults: (List<Exhibition>) -> Unit) {
+        val exhibitionsRef = FirebaseDatabase.getInstance().getReference("Exhibitions")
+
+        exhibitionsRef.orderByChild("name").startAt(query).endAt("$query\uf8ff")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val results = mutableListOf<Exhibition>()
+                    for (childSnapshot in snapshot.children) {
+                        val exhibition = childSnapshot.getValue(Exhibition::class.java)
+                        if (exhibition != null) {
+                            results.add(exhibition)
+                        }
+                    }
+                    onResults(results)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResults(emptyList())
+                }
+            })
+    }
+
     fun addExhibition(exhibition: Exhibition) {
         exhibitionManager.addExhibition(exhibition)
     }

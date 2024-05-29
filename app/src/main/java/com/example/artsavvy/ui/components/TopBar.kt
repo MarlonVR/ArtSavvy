@@ -3,6 +3,7 @@ package com.example.artsavvy.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -39,21 +41,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.artsavvy.R
+import com.example.artsavvy.di.AppModule
+import com.example.artsavvy.manager.ArtManager
+import com.example.artsavvy.model.Art
+import com.example.artsavvy.model.Exhibition
+import com.example.artsavvy.viewmodel.ArtViewModel
+import com.example.artsavvy.viewmodel.ExhibitionViewModel
 import com.example.artsavvy.viewmodel.TopBarViewModel
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
-fun TopBar(routeName: String, navController: NavController, exhibitionId: String? = null) {
+fun TopBar(
+    routeName: String,
+    navController: NavController,
+    exhibitionId: String? = null,
+    onSearchResults: (List<Any>) -> Unit
+) {
     val text = when (routeName) {
         "home" -> "Exposições"
         "exhibition" -> "Obras em Exposição"
         else -> ""
     }
     var showSearchBar by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val topBarViewModel = remember { TopBarViewModel() }
     val isAdmin by topBarViewModel.isAdmin.collectAsState()
 
+    val artManager: ArtManager = AppModule.provideArtManager(AppModule.provideFirebaseDatabase())
+    val artViewModel = remember { ArtViewModel(artManager) }
+
+    val exhibitionViewModel = remember { ExhibitionViewModel() }
+    var isLoading by remember { mutableStateOf(true) }
 
     TopAppBar(
         backgroundColor = MaterialTheme.colors.background,
@@ -73,6 +97,14 @@ fun TopBar(routeName: String, navController: NavController, exhibitionId: String
                     }
                 } else {
                     showSearchBar = false
+                    if(routeName == "home"){
+                        navController.popBackStack()
+                        navController.navigate("home")
+                    }
+                    else if(routeName == "exhibition"){
+                        navController.popBackStack()
+                        navController.navigate("exhibition/$exhibitionId")
+                    }
                 }
             }, modifier = Modifier.size(48.dp)) {
                 if (showSearchBar) {
@@ -133,7 +165,19 @@ fun TopBar(routeName: String, navController: NavController, exhibitionId: String
                     )
                 }
             } else {
-                SearchBar(onClose = { showSearchBar = false })
+                SearchBar(onSearch = { query ->
+                    if (routeName == "home") {
+                        exhibitionViewModel.searchExhibitions(query) { results ->
+                            onSearchResults(results)
+                        }
+                    } else if (routeName == "exhibition") {
+                        exhibitionId?.let {
+                            artViewModel.searchArts(query, it) { results ->
+                                onSearchResults(results)
+                            }
+                        }
+                    }
+                })
             }
         }
     }
@@ -147,6 +191,7 @@ fun TopBar(routeName: String, navController: NavController, exhibitionId: String
         })
     }
 }
+
 
 
 @Composable
@@ -170,8 +215,11 @@ private fun LogoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
 
 
 @Composable
-private fun SearchBar(onClose: () -> Unit) {
-    var textState by remember { mutableStateOf(TextFieldValue("")) }
+fun SearchBar(onSearch: (String) -> Unit) {
+    var query by remember { mutableStateOf("") }
+
+    val searchJob = remember { mutableStateOf<Job?>(null) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -179,34 +227,40 @@ private fun SearchBar(onClose: () -> Unit) {
             .border(1.dp, Color.Gray, CircleShape)
     ) {
         BasicTextField(
-            value = textState,
-            onValueChange = { textState = it },
+            value = query,
+            onValueChange = {
+                query = it
+                searchJob.value?.cancel()
+                searchJob.value = CoroutineScope(Dispatchers.Main).launch {
+                    onSearch(query)
+                }
+            },
             singleLine = true,
             textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = Color.White,
-                    shape = CircleShape
-                )
+                .background(color = Color.White, shape = CircleShape)
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             decorationBox = { innerTextField ->
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp, horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar")
-                    }
-                    Spacer(Modifier.width(8.dp))
                     innerTextField()
+
+                    IconButton(onClick = { onSearch(query) }) {
+                        Icon(Icons.Default.Search, contentDescription = "Pesquisar")
+                    }
                 }
             }
         )
     }
 }
+
+
 
 
 

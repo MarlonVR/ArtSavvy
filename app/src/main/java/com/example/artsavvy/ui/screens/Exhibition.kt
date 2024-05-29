@@ -63,20 +63,25 @@ class Exhibition {
             val isAdmin by artViewModel.isAdmin.observeAsState(initial = false)
             var isLoading by remember { mutableStateOf(true) }
 
+            var searchResults by remember { mutableStateOf<List<Art>>(emptyList()) }
+
             LaunchedEffect(exhibitionId) {
                 artViewModel.loadArtsForExhibition(exhibitionId) {
-                    isLoading = false  // Atualiza o estado de carregamento após os dados serem carregados
+                    isLoading = false
                 }
             }
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column {
-                    TopBar(routeName = "exhibition", navController = navController, exhibitionId)
+                    TopBar(routeName = "exhibition", navController = navController, exhibitionId = exhibitionId, onSearchResults = { results ->
+                        searchResults = results as List<Art>
+                    })
+
                     if (isLoading) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
                         }
-                    } else if (artPieces.isEmpty()) {
+                    } else if (artPieces.isEmpty() && searchResults.isEmpty()) {
                         Text(
                             text = "Por enquanto sem obras",
                             modifier = Modifier
@@ -92,7 +97,8 @@ class Exhibition {
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            items(artPieces, key = { art -> art.id }) { art ->
+                            val itemsToShow = if (searchResults.isNotEmpty()) searchResults else artPieces
+                            items(itemsToShow, key = { art -> art.id }) { art ->
                                 ArtCard(
                                     art = art,
                                     isAdmin = isAdmin,
@@ -113,6 +119,7 @@ class Exhibition {
                 }
             }
         }
+
 
         @Composable
         fun UpdateArt(navController: NavController, artId: String) {
@@ -135,7 +142,7 @@ class Exhibition {
 
             Scaffold(
                 topBar = {
-                    TopBar("edit_artwork", navController)
+                    TopBar("edit_artwork", navController, null, {/**/})
                 }
             ) { padding ->
                 Column(

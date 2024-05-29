@@ -46,7 +46,7 @@ fun UpdateExhibition(navController: NavController, exhibitionId: String, exhibit
 
     Scaffold(
         topBar = {
-            TopBar("edit_exhibition", navController)
+            TopBar("edit_exhibition", navController, null, {/**/})
         }
     ) { padding ->
         Column(

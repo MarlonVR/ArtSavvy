@@ -37,7 +37,7 @@ fun AddExhibition(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopBar(routeName = "add_exhibition", navController = navController)
+            TopBar(routeName = "add_exhibition", navController = navController, null, {/**/})
         }
     ) { paddingValues ->
         Column(

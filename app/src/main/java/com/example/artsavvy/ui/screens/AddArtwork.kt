@@ -36,7 +36,7 @@ fun AddArtworkScreen(navController: NavController, exhibitionId: String) {
 
     Scaffold(
         topBar = {
-            TopBar(routeName = "add_artwork", navController = navController, exhibitionId = exhibitionId)
+            TopBar(routeName = "add_artwork", navController = navController, exhibitionId = exhibitionId, {/**/})
         }
     ) { paddingValues ->
         Column(

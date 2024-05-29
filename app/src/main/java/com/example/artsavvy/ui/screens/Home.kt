@@ -13,16 +13,19 @@ import androidx.navigation.NavController
 import com.example.artsavvy.ui.components.TopBar
 import com.example.artsavvy.viewmodel.ExhibitionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.artsavvy.ui.components.ArtCard
 import com.example.artsavvy.ui.components.ExhibitionCard
+import com.example.artsavvy.model.Exhibition
 
 class Home {
 
     companion object{
         @Composable
         fun Screen(navController: NavController, viewModel: ExhibitionViewModel = viewModel()) {
-            val exhibitions = viewModel.exhibitions.observeAsState(listOf())
+            val exhibitions by viewModel.exhibitions.observeAsState(listOf())
             val isAdmin by viewModel.isAdmin.observeAsState(initial = false)
+
+            var searchResults by remember { mutableStateOf<List<Exhibition>>(emptyList()) }
+            var isSearching by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
                 viewModel.loadExhibitions()
@@ -30,18 +33,23 @@ class Home {
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column {
-                    TopBar("home", navController)
-                    if (exhibitions.value.isEmpty()) {
+                    TopBar(routeName = "home", navController = navController, onSearchResults = { results ->
+                        searchResults = results as List<Exhibition>
+                        isSearching = searchResults.isNotEmpty()
+                    })
+
+                    if (exhibitions.isEmpty() && !isSearching) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
                         }
                     } else {
                         LazyColumn(contentPadding = PaddingValues(top = 8.dp)) {
-                            items(exhibitions.value) { exhibition ->
+                            val itemsToShow = if (isSearching) searchResults else exhibitions
+                            items(itemsToShow, key = { it.id }) { exhibition ->
                                 val exhibitionId = exhibition.id
                                 ExhibitionCard(
-                                    exhibition,
-                                    isAdmin,
+                                    exhibition = exhibition,
+                                    isAdmin = isAdmin,
                                     onDelete = {
                                         viewModel.deleteExhibition(exhibition.id)
                                         navController.navigate("home")
@@ -59,6 +67,5 @@ class Home {
                 }
             }
         }
-
     }
 }
