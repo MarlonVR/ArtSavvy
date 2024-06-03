@@ -34,7 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -60,11 +62,14 @@ fun TopBar(
     routeName: String,
     navController: NavController,
     exhibitionId: String? = null,
-    onSearchResults: (List<Any>) -> Unit
+    onSearchResults: (List<Any>) -> Unit,
+    onShowQRCode: (() -> Unit)? = null
 ) {
     val text = when (routeName) {
         "home" -> "Exposições"
         "exhibition" -> "Obras em Exposição"
+        "QRCode da Obra" -> routeName
+        "Detalhes da Obra" -> routeName
         else -> ""
     }
     var showSearchBar by remember { mutableStateOf(false) }
@@ -97,11 +102,10 @@ fun TopBar(
                     }
                 } else {
                     showSearchBar = false
-                    if(routeName == "home"){
+                    if (routeName == "home") {
                         navController.popBackStack()
                         navController.navigate("home")
-                    }
-                    else if(routeName == "exhibition"){
+                    } else if (routeName == "exhibition") {
                         navController.popBackStack()
                         navController.navigate("exhibition/$exhibitionId")
                     }
@@ -136,7 +140,7 @@ fun TopBar(
                         onClick = {
                             if (routeName == "exhibition") {
                                 navController.navigate("add_artwork/$exhibitionId")
-                            } else if (routeName == "home"){
+                            } else if (routeName == "home") {
                                 navController.navigate("add_exhibition")
                             }
                         },
@@ -148,21 +152,29 @@ fun TopBar(
                         )
                     }
                 }
-                IconButton(onClick = { /* TOCAR NARRAÇÃO*/ }, modifier = Modifier.size(48.dp)) {
+                IconButton(onClick = {
+                    if (routeName == "Detalhes da Obra") {
+                        onShowQRCode?.invoke()
+                    } else {
+                        navController.navigate("qr_code_scanner")
+                    }
+                }, modifier = Modifier.size(48.dp)) {
                     Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play",
+                        painter = painterResource(id = R.drawable.qrcode_scanner),
+                        contentDescription = "Scan QR Code",
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colors.onBackground
                     )
                 }
-                IconButton(onClick = { showSearchBar = !showSearchBar }, modifier = Modifier.size(48.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Pesquisar",
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colors.onBackground
-                    )
+                if (routeName == "home" || routeName == "exhibition") {
+                    IconButton(onClick = { showSearchBar = !showSearchBar }, modifier = Modifier.size(48.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Pesquisar",
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colors.onBackground
+                        )
+                    }
                 }
             } else {
                 SearchBar(onSearch = { query ->
@@ -191,6 +203,7 @@ fun TopBar(
         })
     }
 }
+
 
 
 

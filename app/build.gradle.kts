@@ -53,6 +53,7 @@ android {
 dependencies {
 
     implementation("com.google.firebase:firebase-database-ktx:20.3.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     val navVersion = "2.4.0-alpha10"
     implementation("androidx.navigation:navigation-compose:$navVersion")
     implementation("androidx.core:core-ktx:1.12.0")
@@ -78,4 +79,9 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.40.5")
     implementation("com.google.firebase:firebase-bom:26.2.0")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    //implementation("com.google.zxing:core:3.3.0")
+    //implementation("me.dm7.barcodescanner:zxing:1.9")
+
+
 }

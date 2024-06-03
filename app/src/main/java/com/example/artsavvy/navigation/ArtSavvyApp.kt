@@ -12,6 +12,8 @@ import com.example.artsavvy.ui.screens.ArtDetails
 import com.example.artsavvy.ui.screens.Exhibition
 import com.example.artsavvy.ui.screens.Home
 import com.example.artsavvy.ui.screens.Login
+import com.example.artsavvy.ui.screens.QRCode.Companion.QRCodeScanner
+import com.example.artsavvy.ui.screens.QRCode.Companion.QRCodeScreen
 import com.example.artsavvy.ui.screens.Register
 import com.example.artsavvy.ui.screens.UpdateExhibition
 import com.google.firebase.auth.FirebaseAuth
@@ -79,6 +81,13 @@ object ArtSavvyApp {
             }
             composable("add_exhibition") {
                 AddExhibition(navController)
+            }
+            composable("qrcode_screen/{artId}") { backStackEntry ->
+                val artId = backStackEntry.arguments?.getString("artId") ?: return@composable
+                QRCodeScreen(artId = artId, navController = navController)
+            }
+            composable("qr_code_scanner") {
+                QRCodeScanner(navController)
             }
 
         }
