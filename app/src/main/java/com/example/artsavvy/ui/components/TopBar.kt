@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.AlertDialog
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +47,7 @@ import androidx.navigation.NavController
 import com.example.artsavvy.R
 import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.manager.ArtManager
+import com.example.artsavvy.manager.TextHolder
 import com.example.artsavvy.model.Art
 import com.example.artsavvy.model.Exhibition
 import com.example.artsavvy.viewmodel.ArtViewModel
@@ -75,6 +78,7 @@ fun TopBar(
     var showSearchBar by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var isSpeaking by remember { mutableStateOf(false) }
     val topBarViewModel = remember { TopBarViewModel() }
     val isAdmin by topBarViewModel.isAdmin.collectAsState()
 
@@ -82,7 +86,15 @@ fun TopBar(
     val artViewModel = remember { ArtViewModel(artManager) }
 
     val exhibitionViewModel = remember { ExhibitionViewModel() }
-    var isLoading by remember { mutableStateOf(true) }
+
+    TTSManager.stop()
+
+    DisposableEffect(Unit) {
+        TTSManager.onSpeakingChanged = { speaking ->
+            isSpeaking = speaking
+        }
+        onDispose { }
+    }
 
     TopAppBar(
         backgroundColor = MaterialTheme.colors.background,
@@ -132,7 +144,9 @@ fun TopBar(
                 Text(
                     text = text,
                     style = MaterialTheme.typography.h6,
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .widthIn(max = 200.dp)
                 )
                 Spacer(Modifier.weight(1f))
                 if (isAdmin && (routeName == "exhibition" || routeName == "home")) {
@@ -165,6 +179,26 @@ fun TopBar(
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colors.onBackground
                     )
+                }
+                IconButton(onClick = {
+                    if (isSpeaking) {
+                        TTSManager.stop()
+                        isSpeaking = false
+                    } else {
+                        TTSManager.speak(TextHolder.getText())
+                        isSpeaking = true
+                    }
+                }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (isSpeaking) R.drawable.stop_playing else R.drawable.botao_play
+                        ),
+                        contentDescription = if (isSpeaking) "Stop" else "Play",
+                        modifier = Modifier.size(22.dp),
+                        tint = MaterialTheme.colors.onBackground
+                    )
+
+
                 }
                 if (routeName == "home" || routeName == "exhibition") {
                     IconButton(onClick = { showSearchBar = !showSearchBar }, modifier = Modifier.size(48.dp)) {
@@ -203,6 +237,7 @@ fun TopBar(
         })
     }
 }
+
 
 
 

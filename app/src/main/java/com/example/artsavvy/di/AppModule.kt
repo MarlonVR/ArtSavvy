@@ -4,15 +4,10 @@ import com.google.firebase.database.FirebaseDatabase
 import com.example.artsavvy.manager.ArtManager
 import com.example.artsavvy.manager.CommentsManager
 import com.example.artsavvy.manager.ExhibitionManager
-import com.example.artsavvy.manager.UserManager
-import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import javax.inject.Singleton
 
 @Module
@@ -42,6 +37,5 @@ object AppModule {
     fun provideExhibitionManager(database: FirebaseDatabase): ExhibitionManager {
         return ExhibitionManager(database)
     }
-
 
 }

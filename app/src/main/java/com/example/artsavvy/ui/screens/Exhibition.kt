@@ -47,6 +47,7 @@ import com.example.artsavvy.viewmodel.ArtViewModel
 import coil.compose.rememberImagePainter
 import com.example.artsavvy.di.AppModule
 import com.example.artsavvy.manager.ArtManager
+import com.example.artsavvy.manager.TextHolder
 import com.example.artsavvy.model.Art
 import com.example.artsavvy.ui.components.ArtCard
 import com.example.artsavvy.ui.components.TopBar
@@ -68,6 +69,19 @@ class Exhibition {
                 artViewModel.loadArtsForExhibition(exhibitionId) {
                     isLoading = false
                 }
+            }
+
+            LaunchedEffect(artPieces) {
+                val introText = "Tela das obras da exposição selecionada."
+                val detailsText = buildString {
+                    artPieces.forEachIndexed { index, art ->
+                        append("Obra número ${index + 1}: ")
+                        append("Título: ${art.name}. ")
+                        append("Autor: ${art.author}. ")
+                        appendLine()
+                    }
+                }
+                TextHolder.updateText(introText + detailsText)
             }
 
             Surface(modifier = Modifier.fillMaxSize()) {

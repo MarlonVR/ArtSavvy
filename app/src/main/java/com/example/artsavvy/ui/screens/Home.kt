@@ -13,6 +13,7 @@ import androidx.navigation.NavController
 import com.example.artsavvy.ui.components.TopBar
 import com.example.artsavvy.viewmodel.ExhibitionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.artsavvy.manager.TextHolder
 import com.example.artsavvy.ui.components.ExhibitionCard
 import com.example.artsavvy.model.Exhibition
 
@@ -30,6 +31,20 @@ class Home {
             LaunchedEffect(Unit) {
                 viewModel.loadExhibitions()
             }
+
+            LaunchedEffect(exhibitions) {
+                val introText = "Tela de exposições."
+                val detailsText = buildString {
+                    exhibitions.forEachIndexed { index, exhibition ->
+                        append("Obra número ${index + 1}: ")
+                        append("Título: ${exhibition.name}. ")
+                        append("Descrição: ${exhibition.description}. ")
+                        appendLine()
+                    }
+                }
+                TextHolder.updateText(introText + detailsText)
+            }
+
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column {

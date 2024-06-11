@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -51,6 +50,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.Duration
 import androidx.compose.ui.Alignment
+import com.example.artsavvy.manager.TextHolder
 
 class ArtDetails {
     companion object{
@@ -68,6 +68,20 @@ class ArtDetails {
                     isLoading = fetchedArt == null
                 }
                 artViewModel.loadCommentsForArt(artId)
+            }
+
+            LaunchedEffect(art) {
+                art?.let {
+                    val introText = "Detalhes da obra: ${it.name}."
+                    val detailsText = buildString {
+                        append("Título: ${it.name}. ")
+                        append("Autor: ${it.author}. ")
+                        append("Descrição: ${it.description}. ")
+                        appendLine()
+
+                    }
+                    TextHolder.updateText(introText + detailsText)
+                }
             }
 
             Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
@@ -268,7 +282,7 @@ class ArtDetails {
                         color = MaterialTheme.colors.onSurface
                     )
                 }
-                if (isAdmin) {  // botao de deletar comentarios
+                if (isAdmin) {
                     IconButton(onClick = {
                         val commentsManager = provideCommentsManager(provideFirebaseDatabase())
                         commentsManager.removeComment(comment.id)

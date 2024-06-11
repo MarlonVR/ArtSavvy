@@ -9,6 +9,7 @@ import com.example.artsavvy.ui.theme.ArtSavvyTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TTSManager.initialize(this)
         setContent {
             ArtSavvyTheme {
                 ArtSavvyApp.NavController()
